@@ -1688,44 +1688,107 @@ def render_eda(df):
     tab1, tab2, tab3, tab4 = st.tabs(["🎯 Target Analysis", "💰 Financial Analysis", "📈 Credit Profile", "🔗 Correlation"])
 
     # ---------- TAB 1 ----------
-    with tab1:
-        st.markdown("### 🎯 Target Variable Distribution")
-        col1, col2 = st.columns(2)
-        with col1:
-            if target_col is not None and target_col in df.columns:
-                target_series = df[target_col].dropna()
-                if len(target_series) > 0:
-                    counts = target_series.value_counts()
-                    labels = ['Non-Default', 'Default'] if len(counts) == 2 else counts.index.astype(str).tolist()
-                    fig = go.Figure(data=[go.Pie(
-                        labels=labels,
-                        values=counts.values,
-                        hole=0.4,
-                        marker=dict(colors=['#43e97b', '#f5576c']),
-                        textinfo='label+percent',
-                        textposition='auto'
-                    )])
-                    fig.update_layout(height=400, showlegend=False, paper_bgcolor='rgba(0,0,0,0)')
-                    st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
-                else:
-                    st.info("Target column has no valid data.")
+    # ---------- TAB 1 ----------
+with tab1:
+    st.markdown("### 🎯 Target Variable Distribution")
+    col1, col2 = st.columns(2)
+    with col1:
+        if target_col is not None and target_col in df.columns:
+            target_series = df[target_col].dropna()
+            if len(target_series) > 0:
+                # Ensure the data is numeric and properly formatted
+                try:
+                    # Convert to numeric, coercing errors
+                    target_series = pd.to_numeric(target_series, errors='coerce').dropna()
+                    if len(target_series) > 0:
+                        # Get unique values
+                        unique_vals = target_series.unique()
+                        
+                        # If only 0 and 1, it's binary classification
+                        if set(unique_vals) <= {0, 1}:
+                            counts = target_series.value_counts()
+                            labels = ['Non-Default', 'Default']
+                            values = [counts.get(0, 0), counts.get(1, 0)]
+                            
+                            # Only show if there's data
+                            if sum(values) > 0:
+                                fig = go.Figure(data=[go.Pie(
+                                    labels=labels,
+                                    values=values,
+                                    hole=0.4,
+                                    marker=dict(colors=['#43e97b', '#f5576c']),
+                                    textinfo='label+percent',
+                                    textposition='auto'
+                                )])
+                                fig.update_layout(height=400, showlegend=False, paper_bgcolor='rgba(0,0,0,0)')
+                                st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
+                            else:
+                                st.info("No valid target data available for pie chart")
+                        else:
+                            # For non-binary target, show as histogram
+                            fig = px.histogram(target_series, title='Target Distribution')
+                            fig.update_layout(height=400, paper_bgcolor='rgba(0,0,0,0)')
+                            st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
+                    else:
+                        st.info("Target column has no valid numeric data")
+                except Exception as e:
+                    st.error(f"Error processing target data: {str(e)}")
             else:
-                st.info("Target column not found in dataset")
-        with col2:
-            if target_col is not None and target_col in df.columns:
-                target_series = df[target_col].dropna()
-                if len(target_series) > 0:
-                    fig = px.histogram(target_series, title='Count Plot', 
-                                       color=target_series,
-                                       color_discrete_map={0: '#43e97b', 1: '#f5576c'},
-                                       labels={'value': 'Default Status'})
-                    fig.update_layout(height=400, showlegend=False, paper_bgcolor='rgba(0,0,0,0)', bargap=0.2)
-                    st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
-                else:
-                    st.info("Target column has no valid data.")
+                st.info("Target column has no valid data")
+        else:
+            st.info("Target column not found in dataset")
+    
+    with col2:
+        if target_col is not None and target_col in df.columns:
+            target_series = df[target_col].dropna()
+            if len(target_series) > 0:
+                try:
+                    # Convert to numeric
+                    target_series = pd.to_numeric(target_series, errors='coerce').dropna()
+                    if len(target_series) > 0:
+                        # For binary classification
+                        if set(target_series.unique()) <= {0, 1}:
+                            # Create bar chart with proper colors
+                            value_counts = target_series.value_counts().sort_index()
+                            
+                            # Create dataframe for plotting
+                            plot_df = pd.DataFrame({
+                                'Status': ['Non-Default' if x == 0 else 'Default' for x in value_counts.index],
+                                'Count': value_counts.values
+                            })
+                            
+                            fig = px.bar(
+                                plot_df, 
+                                x='Status', 
+                                y='Count',
+                                title='Default Status Distribution',
+                                color='Status',
+                                color_discrete_map={'Non-Default': '#43e97b', 'Default': '#f5576c'},
+                                text='Count'
+                            )
+                            fig.update_traces(textposition='outside')
+                            fig.update_layout(
+                                height=400, 
+                                showlegend=False, 
+                                paper_bgcolor='rgba(0,0,0,0)', 
+                                bargap=0.2,
+                                xaxis_title="",
+                                yaxis_title="Number of Applicants"
+                            )
+                            st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
+                        else:
+                            # For non-binary, show histogram
+                            fig = px.histogram(target_series, title='Target Distribution')
+                            fig.update_layout(height=400, paper_bgcolor='rgba(0,0,0,0)')
+                            st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
+                    else:
+                        st.info("Target column has no valid numeric data")
+                except Exception as e:
+                    st.error(f"Error processing target data: {str(e)}")
             else:
-                st.info("Target column not found in dataset")
-
+                st.info("Target column has no valid data")
+        else:
+            st.info("Target column not found in dataset")
     # ---------- TAB 2 ----------
     with tab2:
         st.markdown("### 💰 Financial Analysis")
