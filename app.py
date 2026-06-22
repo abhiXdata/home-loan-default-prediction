@@ -1121,13 +1121,13 @@ def show_consent_notice():
                 4+ GB RAM recommended
             </div>
             <div class="notice-item">
-                🔄 <strong>Cache:</strong><br>
-                Faster on subsequent visits
+                💻 <strong>Best Experience:</strong><br>
+                Use Desktop for better charts visualization
             </div>
         </div>
         
         <div style="margin: 10px 0 5px 0;">
-            <span class="notice-warning">⚠️ Your internet data will be consumed during download.</span>
+            <span class="notice-warning">⚠️ Your internet data might be consumed during download.</span>
         </div>
         
         <div class="notice-footer">
