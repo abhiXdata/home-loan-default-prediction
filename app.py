@@ -1400,9 +1400,6 @@ def get_dataset_stats(df):
 # ============================================================================
 # NAVIGATION
 # ============================================================================
-# ============================================================================
-# NAVIGATION
-# ============================================================================
 def render_navigation():
     """Render horizontal navigation bar"""
     with st.container():
@@ -1417,11 +1414,9 @@ def render_navigation():
         
         # Get the current page from session state, default to Dashboard
         current_page = st.session_state.get('page', '🏠 Dashboard')
-        default_idx = page_to_index.get(current_page, 0)
         
-        # Initialize session state for navigation if not exists
-        if 'nav_selected' not in st.session_state:
-            st.session_state.nav_selected = current_page
+        # Get the default index
+        default_idx = page_to_index.get(current_page, 0)
         
         # Create the option menu
         selected = option_menu(
@@ -1467,11 +1462,10 @@ def render_navigation():
         )
         
         # Update session state based on selection
-        if selected and selected != st.session_state.get('page', '🏠 Dashboard'):
+        # Always update if selected is not None
+        if selected is not None:
             st.session_state.page = selected
-            st.session_state.nav_selected = selected
-            st.rerun()
-
+            
 # ============================================================================
 # HERO BANNER
 # ============================================================================
