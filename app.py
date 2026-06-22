@@ -1663,8 +1663,7 @@ def render_dashboard(df, stats, model, feature_names):
         """, unsafe_allow_html=True)
 # ----------------------------------------------------------------------------
 # EDA PAGE
-# ----------------------------------------------------------------------------
-def render_eda(df):
+# ----------------------------------------------------------------------------def render_eda(df):
     """Render the EDA page with interactive visualizations – robust for missing columns"""
     st.markdown('<h2 style="color: #6F6F7D; margin-bottom: 1rem;">📊 Exploratory Data Analysis</h2>', unsafe_allow_html=True)
     
@@ -1684,111 +1683,102 @@ def render_eda(df):
             target_col = col
             break
 
-    # Tabs
+    # Tabs - DEFINE TABS HERE
     tab1, tab2, tab3, tab4 = st.tabs(["🎯 Target Analysis", "💰 Financial Analysis", "📈 Credit Profile", "🔗 Correlation"])
 
     # ---------- TAB 1 ----------
-    # ---------- TAB 1 ----------
-with tab1:
-    st.markdown("### 🎯 Target Variable Distribution")
-    col1, col2 = st.columns(2)
-    with col1:
-        if target_col is not None and target_col in df.columns:
-            target_series = df[target_col].dropna()
-            if len(target_series) > 0:
-                # Ensure the data is numeric and properly formatted
-                try:
-                    # Convert to numeric, coercing errors
-                    target_series = pd.to_numeric(target_series, errors='coerce').dropna()
-                    if len(target_series) > 0:
-                        # Get unique values
-                        unique_vals = target_series.unique()
-                        
-                        # If only 0 and 1, it's binary classification
-                        if set(unique_vals) <= {0, 1}:
-                            counts = target_series.value_counts()
-                            labels = ['Non-Default', 'Default']
-                            values = [counts.get(0, 0), counts.get(1, 0)]
-                            
-                            # Only show if there's data
-                            if sum(values) > 0:
-                                fig = go.Figure(data=[go.Pie(
-                                    labels=labels,
-                                    values=values,
-                                    hole=0.4,
-                                    marker=dict(colors=['#43e97b', '#f5576c']),
-                                    textinfo='label+percent',
-                                    textposition='auto'
-                                )])
-                                fig.update_layout(height=400, showlegend=False, paper_bgcolor='rgba(0,0,0,0)')
+    with tab1:
+        st.markdown("### 🎯 Target Variable Distribution")
+        col1, col2 = st.columns(2)
+        with col1:
+            if target_col is not None and target_col in df.columns:
+                target_series = df[target_col].dropna()
+                if len(target_series) > 0:
+                    try:
+                        # Convert to numeric, coercing errors
+                        target_series = pd.to_numeric(target_series, errors='coerce').dropna()
+                        if len(target_series) > 0:
+                            # If only 0 and 1, it's binary classification
+                            if set(target_series.unique()) <= {0, 1}:
+                                counts = target_series.value_counts()
+                                labels = ['Non-Default', 'Default']
+                                values = [counts.get(0, 0), counts.get(1, 0)]
+                                
+                                if sum(values) > 0:
+                                    fig = go.Figure(data=[go.Pie(
+                                        labels=labels,
+                                        values=values,
+                                        hole=0.4,
+                                        marker=dict(colors=['#43e97b', '#f5576c']),
+                                        textinfo='label+percent',
+                                        textposition='auto'
+                                    )])
+                                    fig.update_layout(height=400, showlegend=False, paper_bgcolor='rgba(0,0,0,0)')
+                                    st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
+                                else:
+                                    st.info("No valid target data available for pie chart")
+                            else:
+                                fig = px.histogram(target_series, title='Target Distribution')
+                                fig.update_layout(height=400, paper_bgcolor='rgba(0,0,0,0)')
+                                st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
+                        else:
+                            st.info("Target column has no valid numeric data")
+                    except Exception as e:
+                        st.info(f"Error processing target data: {str(e)}")
+                else:
+                    st.info("Target column has no valid data")
+            else:
+                st.info("Target column not found in dataset")
+        
+        with col2:
+            if target_col is not None and target_col in df.columns:
+                target_series = df[target_col].dropna()
+                if len(target_series) > 0:
+                    try:
+                        # Convert to numeric
+                        target_series = pd.to_numeric(target_series, errors='coerce').dropna()
+                        if len(target_series) > 0:
+                            # For binary classification
+                            if set(target_series.unique()) <= {0, 1}:
+                                value_counts = target_series.value_counts().sort_index()
+                                
+                                plot_df = pd.DataFrame({
+                                    'Status': ['Non-Default' if x == 0 else 'Default' for x in value_counts.index],
+                                    'Count': value_counts.values
+                                })
+                                
+                                fig = px.bar(
+                                    plot_df, 
+                                    x='Status', 
+                                    y='Count',
+                                    title='Default Status Distribution',
+                                    color='Status',
+                                    color_discrete_map={'Non-Default': '#43e97b', 'Default': '#f5576c'},
+                                    text='Count'
+                                )
+                                fig.update_traces(textposition='outside')
+                                fig.update_layout(
+                                    height=400, 
+                                    showlegend=False, 
+                                    paper_bgcolor='rgba(0,0,0,0)', 
+                                    bargap=0.2,
+                                    xaxis_title="",
+                                    yaxis_title="Number of Applicants"
+                                )
                                 st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
                             else:
-                                st.info("No valid target data available for pie chart")
+                                fig = px.histogram(target_series, title='Target Distribution')
+                                fig.update_layout(height=400, paper_bgcolor='rgba(0,0,0,0)')
+                                st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
                         else:
-                            # For non-binary target, show as histogram
-                            fig = px.histogram(target_series, title='Target Distribution')
-                            fig.update_layout(height=400, paper_bgcolor='rgba(0,0,0,0)')
-                            st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
-                    else:
-                        st.info("Target column has no valid numeric data")
-                except Exception as e:
-                    st.error(f"Error processing target data: {str(e)}")
+                            st.info("Target column has no valid numeric data")
+                    except Exception as e:
+                        st.info(f"Error processing target data: {str(e)}")
+                else:
+                    st.info("Target column has no valid data")
             else:
-                st.info("Target column has no valid data")
-        else:
-            st.info("Target column not found in dataset")
-    
-    with col2:
-        if target_col is not None and target_col in df.columns:
-            target_series = df[target_col].dropna()
-            if len(target_series) > 0:
-                try:
-                    # Convert to numeric
-                    target_series = pd.to_numeric(target_series, errors='coerce').dropna()
-                    if len(target_series) > 0:
-                        # For binary classification
-                        if set(target_series.unique()) <= {0, 1}:
-                            # Create bar chart with proper colors
-                            value_counts = target_series.value_counts().sort_index()
-                            
-                            # Create dataframe for plotting
-                            plot_df = pd.DataFrame({
-                                'Status': ['Non-Default' if x == 0 else 'Default' for x in value_counts.index],
-                                'Count': value_counts.values
-                            })
-                            
-                            fig = px.bar(
-                                plot_df, 
-                                x='Status', 
-                                y='Count',
-                                title='Default Status Distribution',
-                                color='Status',
-                                color_discrete_map={'Non-Default': '#43e97b', 'Default': '#f5576c'},
-                                text='Count'
-                            )
-                            fig.update_traces(textposition='outside')
-                            fig.update_layout(
-                                height=400, 
-                                showlegend=False, 
-                                paper_bgcolor='rgba(0,0,0,0)', 
-                                bargap=0.2,
-                                xaxis_title="",
-                                yaxis_title="Number of Applicants"
-                            )
-                            st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
-                        else:
-                            # For non-binary, show histogram
-                            fig = px.histogram(target_series, title='Target Distribution')
-                            fig.update_layout(height=400, paper_bgcolor='rgba(0,0,0,0)')
-                            st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
-                    else:
-                        st.info("Target column has no valid numeric data")
-                except Exception as e:
-                    st.error(f"Error processing target data: {str(e)}")
-            else:
-                st.info("Target column has no valid data")
-        else:
-            st.info("Target column not found in dataset")
+                st.info("Target column not found in dataset")
+
     # ---------- TAB 2 ----------
     with tab2:
         st.markdown("### 💰 Financial Analysis")
@@ -1809,6 +1799,7 @@ with tab1:
                 st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
             else:
                 st.info("Column 'AMT_CREDIT' not available or all missing.")
+        
         with col2:
             annuity = get_numeric_col('AMT_ANNUITY')
             if annuity is not None:
@@ -1822,13 +1813,18 @@ with tab1:
                 # Boxplot needs the original dataframe with target
                 df_target_income = df[[target_col, 'AMT_INCOME_TOTAL']].dropna()
                 if len(df_target_income) > 0:
-                    fig = px.box(df_target_income, x=target_col, y='AMT_INCOME_TOTAL',
-                                 title='Income vs Default Status', color=target_col,
-                                 color_discrete_map={0: '#43e97b', 1: '#f5576c'})
-                    fig.update_layout(height=350, showlegend=False, paper_bgcolor='rgba(0,0,0,0)')
-                    st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
-                else:
-                    st.info("Not enough data for boxplot.")
+                    # Ensure target is numeric
+                    df_target_income[target_col] = pd.to_numeric(df_target_income[target_col], errors='coerce')
+                    df_target_income = df_target_income.dropna()
+                    
+                    if len(df_target_income) > 0:
+                        fig = px.box(df_target_income, x=target_col, y='AMT_INCOME_TOTAL',
+                                     title='Income vs Default Status', color=target_col,
+                                     color_discrete_map={0: '#43e97b', 1: '#f5576c'})
+                        fig.update_layout(height=350, showlegend=False, paper_bgcolor='rgba(0,0,0,0)')
+                        st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
+                    else:
+                        st.info("Not enough data for boxplot")
 
     # ---------- TAB 3 ----------
     with tab3:
@@ -1844,6 +1840,7 @@ with tab1:
                     st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
                 else:
                     st.info(f"Column '{col_name}' not available or all missing.")
+        
         # Boxplots for EXT_SOURCES by target
         if target_col:
             st.markdown("### Credit Sources by Default Status")
@@ -1868,7 +1865,6 @@ with tab1:
         if len(numeric_cols) > 1:
             # Take top 20 to avoid huge matrix
             if len(numeric_cols) > 20:
-                # Instead of taking first 20, we could take by variance, but simpler: take first 20
                 numeric_cols = numeric_cols[:20]
             corr = df[numeric_cols].corr()
             # Heatmap
@@ -1884,6 +1880,7 @@ with tab1:
             ))
             fig.update_layout(height=600, paper_bgcolor='rgba(0,0,0,0)', title='Correlation Heatmap')
             st.plotly_chart(fig, use_container_width=True, config={'responsive': True})
+            
             # Top correlated pairs
             st.markdown("### 🔝 Top Correlated Features")
             pairs = []
