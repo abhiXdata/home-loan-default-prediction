@@ -1,0 +1,26 @@
+.main-header{
+    font-size:42px;
+    font-weight:700;
+    text-align:center;
+    color:#1E3A8A;
+}
+
+.sub-header{
+    text-align:center;
+    color:#64748B;
+    font-size:18px;
+}
+
+.metric-card{
+    background:#F8FAFC;
+    padding:20px;
+    border-radius:12px;
+    text-align:center;
+    box-shadow:0px 2px 8px rgba(0,0,0,0.1);
+}
+
+.section-title{
+    font-size:28px;
+    font-weight:600;
+    color:#0F172A;
+}
