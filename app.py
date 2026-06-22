@@ -1663,7 +1663,8 @@ def render_dashboard(df, stats, model, feature_names):
         """, unsafe_allow_html=True)
 # ----------------------------------------------------------------------------
 # EDA PAGE
-# ----------------------------------------------------------------------------def render_eda(df):
+# ----------------------------------------------------------------------------
+def render_eda(df):
     """Render the EDA page with interactive visualizations – robust for missing columns"""
     st.markdown('<h2 style="color: #6F6F7D; margin-bottom: 1rem;">📊 Exploratory Data Analysis</h2>', unsafe_allow_html=True)
     
